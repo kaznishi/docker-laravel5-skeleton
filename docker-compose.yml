@@ -4,17 +4,17 @@ services:
   app:
     build: ./docker/php
     volumes:
-      - ./:/var/www/html:cached
+      - ./:/var/www/html
   node:
     build: ./docker/node
     volumes: 
-      - ./:/home/node/volume:cached
+      - ./:/home/node/volume
   nginx:
     image: nginx
     ports:
       - '80:80'
     volumes:
-      - ./:/var/www/html:cached
+      - ./:/var/www/html
       - ./docker/nginx/php.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - app

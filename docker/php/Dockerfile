@@ -5,55 +5,38 @@ ENV PUID ${PUID}
 ARG PGID=1000
 ENV PGID ${PGID}
 ARG USERNAME=appuser
-
-RUN groupadd -g ${PGID} ${USERNAME} && \
-    useradd -u ${PUID} -g ${USERNAME} -m ${USERNAME} && \
-    usermod -p "*" ${USERNAME}
-
 ARG TZ=Asia/Tokyo
 ENV TZ ${TZ}
 
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+COPY docker/php/php.ini /usr/local/etc/php/php.ini
+COPY . /var/www/html/
 
-RUN apt-get update && apt-get install -y \
+RUN groupadd -g ${PGID} ${USERNAME} && \
+    useradd -u ${PUID} -g ${USERNAME} -m ${USERNAME} && \
+    usermod -p "*" ${USERNAME} \
+    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
+    && apt-get update && apt-get install -y \
     build-essential \
     mysql-client \
     openssl \
     locales \
     zip \
-    zlib1g-dev
-
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-RUN docker-php-ext-install \
+    zlib1g-dev \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* \
+    && docker-php-ext-install \
     pdo_mysql \
-    zip
-
-COPY docker/php/php.ini /usr/local/etc/php/php.ini
-
-RUN echo ja_JP.UTF-8 UTF-8 > /etc/locale.gen && locale-gen
-
-RUN curl -sS https://getcomposer.org/installer | \
-    php -- --install-dir=/usr/bin --filename=composer
+    zip \
+    && echo ja_JP.UTF-8 UTF-8 > /etc/locale.gen && locale-gen \
+    && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
+    && mkdir -p /var/sessions \
+    && chown -R www-data /var/sessions \
+    && chown -R ${USERNAME}:${USERNAME} /var/www/html
 
 USER ${USERNAME}
+ENV PATH $PATH:/home/${USERNAME}/.composer/vendor/bin
+WORKDIR /var/www/html
 RUN composer config -g repos.packagist composer https://packagist.jp \
     && composer global require hirak/prestissimo \
-    && composer global require laravel/installer
-
-ENV PATH $PATH:/home/${USERNAME}/.composer/vendor/bin
-
-USER root
-
-RUN mkdir -p /var/sessions \
-    && chown -R www-data /var/sessions
-COPY . /var/www/html/
-RUN chown -R ${USERNAME}:${USERNAME} /var/www/html
-
-WORKDIR /var/www/html
-
-USER ${USERNAME}
-
-RUN composer install
+    && composer install
 
 USER root

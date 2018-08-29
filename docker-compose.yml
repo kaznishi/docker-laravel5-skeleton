@@ -1,29 +1,9 @@
-# version: '3'
-
-# services:
-#   app:
-#     build: ./docker/php
-#     volumes:
-#       - ./:/var/www/html
-#   node:
-#     build: ./docker/node
-#     volumes: 
-#       - ./:/home/node/volume
-#   nginx:
-#     image: nginx
-#     ports:
-#       - '80:80'
-#     volumes:
-#       - ./:/var/www/html
-#       - ./docker/nginx/php.conf:/etc/nginx/conf.d/default.conf
-#     depends_on:
-#       - app
 version: '3'
 
 services:
   app:
     build:
-      dockerfile: ./docker/php/Dockerfile.prod
+      dockerfile: ./docker/php/Dockerfile
       context: .
     image: kaznishi/laravel-app
     environment:
@@ -32,7 +12,7 @@ services:
       - ./:/var/www/html
   nginx:
     build:
-      dockerfile: ./docker/nginx/Dockerfile.prod
+      dockerfile: ./docker/nginx/Dockerfile
       context: .
     image: kaznishi/laravel-nginx
     ports:

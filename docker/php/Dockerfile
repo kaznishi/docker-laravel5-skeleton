@@ -1,13 +1,14 @@
-FROM php:7.2.3-fpm
+FROM php:7.2-fpm
 
 ARG PUID=1000
 ENV PUID ${PUID}
 ARG PGID=1000
 ENV PGID ${PGID}
+ARG USERNAME=appuser
 
-RUN groupadd -g ${PGID} appuser && \
-    useradd -u ${PUID} -g appuser -m appuser && \
-    usermod -p "*" appuser
+RUN groupadd -g ${PGID} ${USERNAME} && \
+    useradd -u ${PUID} -g ${USERNAME} -m ${USERNAME} && \
+    usermod -p "*" ${USERNAME}
 
 ARG TZ=Asia/Tokyo
 ENV TZ ${TZ}
@@ -28,23 +29,31 @@ RUN docker-php-ext-install \
     pdo_mysql \
     zip
 
-COPY php.ini /usr/local/etc/php/php.ini
+COPY docker/php/php.ini /usr/local/etc/php/php.ini
 
 RUN echo ja_JP.UTF-8 UTF-8 > /etc/locale.gen && locale-gen
 
 RUN curl -sS https://getcomposer.org/installer | \
     php -- --install-dir=/usr/bin --filename=composer
 
-USER appuser
+USER ${USERNAME}
 RUN composer config -g repos.packagist composer https://packagist.jp \
     && composer global require hirak/prestissimo \
     && composer global require laravel/installer
 
-ENV PATH $PATH:/home/appuser/.composer/vendor/bin
+ENV PATH $PATH:/home/${USERNAME}/.composer/vendor/bin
 
 USER root
 
 RUN mkdir -p /var/sessions \
     && chown -R www-data /var/sessions
+COPY . /var/www/html/
+RUN chown -R ${USERNAME}:${USERNAME} /var/www/html
 
 WORKDIR /var/www/html
+
+USER ${USERNAME}
+
+RUN composer install
+
+USER root

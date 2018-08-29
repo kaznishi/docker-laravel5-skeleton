@@ -3,14 +3,14 @@ version: '3'
 services:
   app:
     build:
-      dockerfile: ./docker/php/Dockerfile.prod
+      dockerfile: ./docker/php/Dockerfile
       context: .
     image: kaznishi/laravel-app
     environment:
       APP_KEY: base64:98hrEDhxAQ+HA0bmSuutVnrQ2tdfoDqCclWXc4tAooY=
   nginx:
     build:
-      dockerfile: ./docker/nginx/Dockerfile.prod
+      dockerfile: ./docker/nginx/Dockerfile
       context: .
     image: kaznishi/laravel-nginx
     ports:

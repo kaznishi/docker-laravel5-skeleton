@@ -6,8 +6,17 @@ services:
       dockerfile: ./docker/php/Dockerfile.prod
       context: .
     image: kaznishi/laravel-app
+    environment:
+      APP_KEY: base64:98hrEDhxAQ+HA0bmSuutVnrQ2tdfoDqCclWXc4tAooY=
   nginx:
     build:
       dockerfile: ./docker/nginx/Dockerfile.prod
       context: .
     image: kaznishi/laravel-nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+    environment:
+      BACKEND_HOST: app
+      LOG_STROUT: "true"

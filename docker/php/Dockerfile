@@ -1,4 +1,4 @@
-FROM php:7.2-fpm
+FROM php:7.2-fpm-alpine
 
 ARG PUID=1000
 ENV PUID ${PUID}
@@ -11,22 +11,17 @@ ENV TZ ${TZ}
 COPY docker/php/php.ini /usr/local/etc/php/php.ini
 COPY . /var/www/html/
 
-RUN groupadd -g ${PGID} ${USERNAME} && \
-    useradd -u ${PUID} -g ${USERNAME} -m ${USERNAME} && \
-    usermod -p "*" ${USERNAME} \
-    && ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
-    && apt-get update && apt-get install -y \
-    build-essential \
-    mysql-client \
+RUN addgroup -g ${PGID} ${USERNAME} \
+    && adduser -D -u ${PUID} -G ${USERNAME} ${USERNAME} \
+    && apk update && apk add tzdata \
+    && cp /usr/share/zoneinfo/$TZ /etc/localtime \
+    && apk update && apk add \
+    zlib-dev \
     openssl \
-    locales \
-    zip \
-    zlib1g-dev \
-    && apt-get clean && rm -rf /var/lib/apt/lists/* \
     && docker-php-ext-install \
     pdo_mysql \
     zip \
-    && echo ja_JP.UTF-8 UTF-8 > /etc/locale.gen && locale-gen \
+    && rm -rf /var/cache/apk/* \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
     && mkdir -p /var/sessions \
     && chown -R www-data /var/sessions \

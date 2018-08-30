@@ -11,7 +11,7 @@ docker-compose run --rm --user node node yarn dev
 docker-compose up
 ```
 
-本番用のコンテナ作成&コンテナレジストリへのpush:
+本番用のコンテナイメージ作成&レジストリへのpush:
 
 ```
 docker-compose -f docker-compose.prod.yml build

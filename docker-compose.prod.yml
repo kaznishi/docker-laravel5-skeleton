@@ -19,4 +19,4 @@ services:
       - app
     environment:
       BACKEND_HOST: app
-      LOG_STROUT: "true"
+      LOG_STDOUT: "true"

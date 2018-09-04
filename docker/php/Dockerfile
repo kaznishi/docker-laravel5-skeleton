@@ -1,14 +1,12 @@
 FROM php:7.2-fpm-alpine
 
 ARG PUID=1000
-ENV PUID ${PUID}
 ARG PGID=1000
-ENV PGID ${PGID}
 ARG USERNAME=appuser
 ARG TZ=Asia/Tokyo
-ENV TZ ${TZ}
 
 COPY docker/php/php.ini /usr/local/etc/php/php.ini
+COPY docker/php/www.conf.template /usr/local/etc/php-fpm.d/www.conf.template
 COPY . /var/www/html/
 
 RUN addgroup -g ${PGID} ${USERNAME} \
@@ -18,14 +16,16 @@ RUN addgroup -g ${PGID} ${USERNAME} \
     && apk update && apk add \
     zlib-dev \
     openssl \
+    gettext \
     && docker-php-ext-install \
     pdo_mysql \
     zip \
     && rm -rf /var/cache/apk/* \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
     && mkdir -p /var/sessions \
-    && chown -R www-data /var/sessions \
-    && chown -R ${USERNAME}:${USERNAME} /var/www/html
+    && chown -R ${USERNAME}:${USERNAME} /var/sessions \
+    && chown -R ${USERNAME}:${USERNAME} /var/www/html \
+    && envsubst < /usr/local/etc/php-fpm.d/www.conf.template > /usr/local/etc/php-fpm.d/www.conf
 
 USER ${USERNAME}
 ENV PATH $PATH:/home/${USERNAME}/.composer/vendor/bin
